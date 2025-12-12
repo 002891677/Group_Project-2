@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../services/mood_service.dart';
+
 class MoodTrackingScreen extends StatefulWidget {
   const MoodTrackingScreen({super.key});
 
@@ -28,9 +30,7 @@ class _MoodTrackingScreenState extends State<MoodTrackingScreen> {
                 final isSelected = _selectedMood == index;
                 return GestureDetector(
                   onTap: () {
-                    setState(() {
-                      _selectedMood = index;
-                    });
+                    setState(() => _selectedMood = index);
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -55,11 +55,12 @@ class _MoodTrackingScreenState extends State<MoodTrackingScreen> {
             ElevatedButton(
               onPressed: _selectedMood == null
                   ? null
-                  : () {
-                      // TODO: Save mood to Firestore later
+                  : () async {
+                      await MoodService.instance.saveMood(_selectedMood!);
+                      if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Mood saved (locally for now)'),
+                          content: Text('Mood saved (temporary local store).'),
                         ),
                       );
                     },
