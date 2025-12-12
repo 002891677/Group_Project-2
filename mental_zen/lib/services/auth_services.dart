@@ -1,28 +1,27 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 class AuthService {
-  // later your teammate will turn this into a real singleton with Firebase
-  static final AuthService instance = AuthService._internal();
   AuthService._internal();
+  static final AuthService instance = AuthService._internal();
 
-  // simple in-memory "logged in" flag for now
-  bool _loggedIn = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  bool get isLoggedIn => _loggedIn;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  User? get currentUser => _auth.currentUser;
 
   Future<void> signIn(String email, String password) async {
-    // TODO(Sai): Replace with FirebaseAuth signInWithEmailAndPassword
-    await Future.delayed(const Duration(milliseconds: 300));
-    _loggedIn = true;
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
   Future<void> signUp(String email, String password) async {
-    // TODO(Sai): Replace with FirebaseAuth createUserWithEmailAndPassword
-    await Future.delayed(const Duration(milliseconds: 300));
-    _loggedIn = true;
+    await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   Future<void> signOut() async {
-    // TODO(Sai): Replace with FirebaseAuth signOut
-    await Future.delayed(const Duration(milliseconds: 200));
-    _loggedIn = false;
+    await _auth.signOut();
   }
 }
