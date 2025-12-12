@@ -1,25 +1,38 @@
-import 'package:uuid/uuid.dart';
-import '../models/journal_entry.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mental_zen/services/auth_service.dart';
+import 'package:mental_zen/models/journal_entry.dart';
 
 class JournalService {
-  static final JournalService instance = JournalService._internal();
   JournalService._internal();
+  static final JournalService instance = JournalService._internal();
 
-  final _uuid = const Uuid();
-  final List<JournalEntry> _entries = [];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  List<JournalEntry> get entries =>
-      List.unmodifiable(_entries..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
+  CollectionReference<Map<String, dynamic>> _collection(String uid) {
+    return _db.collection('users').doc(uid).collection('journals');
+  }
 
   Future<void> saveEntry(String text, {int? moodIndex}) async {
-    // TODO(Sai): Replace with Firestore write
-    final entry = JournalEntry(
-      id: _uuid.v4(),
-      timestamp: DateTime.now(),
-      text: text,
-      moodIndex: moodIndex,
-    );
-    _entries.add(entry);
-    await Future.delayed(const Duration(milliseconds: 200));
+    final user = AuthService.instance.currentUser;
+    if (user == null) return;
+
+    await _collection(user.uid).add({
+      'timestamp': DateTime.now().toIso8601String(),
+      'text': text,
+      'moodIndex': moodIndex,
+    });
+  }
+
+  Future<List<JournalEntry>> fetchAll() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) return [];
+
+    final snapshot = await _collection(
+      user.uid,
+    ).orderBy('timestamp', descending: true).get();
+
+    return snapshot.docs
+        .map((doc) => JournalEntry.fromMap(doc.id, doc.data()))
+        .toList();
   }
 }

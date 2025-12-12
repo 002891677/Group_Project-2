@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-import 'core/app_theme.dart';
-import 'services/auth_service.dart';
-import 'features/auth/login_screen.dart';
-import 'features/home/home_screen.dart';
+import 'package:mental_zen/core/app_theme.dart';
+import 'package:mental_zen/services/auth_service.dart';
+import 'package:mental_zen/features/auth/login_screen.dart';
+import 'package:mental_zen/features/home/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,11 +40,7 @@ class AuthGate extends StatelessWidget {
           );
         }
 
-        if (snapshot.hasData) {
-          return const HomeScreen();
-        } else {
-          return const LoginScreen();
-        }
+        return snapshot.hasData ? const HomeScreen() : const LoginScreen();
       },
     );
   }

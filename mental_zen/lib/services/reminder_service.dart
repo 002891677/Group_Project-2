@@ -1,17 +1,21 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mental_zen/services/auth_service.dart';
+
 class ReminderService {
-  static final ReminderService instance = ReminderService._internal();
   ReminderService._internal();
+  static final ReminderService instance = ReminderService._internal();
 
-  bool enabled = false;
-  String timeString = '20:00';
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Future<void> updateReminder({
-    required bool isEnabled,
-    required String time,
-  }) async {
-    // TODO(Sai): Replace with Firestore + flutter_local_notifications
-    enabled = isEnabled;
-    timeString = time;
-    await Future.delayed(const Duration(milliseconds: 200));
+  Future<void> saveReminder(bool enabled, String time) async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) return;
+
+    await _db
+        .collection('users')
+        .doc(user.uid)
+        .collection('settings')
+        .doc('reminder')
+        .set({'enabled': enabled, 'time': time});
   }
 }

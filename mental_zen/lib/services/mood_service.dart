@@ -1,27 +1,37 @@
-// lib/services/mood_service.dart
-import 'package:uuid/uuid.dart';
-
-import '../models/mood_entry.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mental_zen/services/auth_service.dart';
+import 'package:mental_zen/models/mood_entry.dart';
 
 class MoodService {
-  // Singleton pattern: MoodService.instance
   MoodService._internal();
   static final MoodService instance = MoodService._internal();
 
-  final _uuid = const Uuid();
-  final List<MoodEntry> _entries = [];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  List<MoodEntry> get entries => List.unmodifiable(_entries);
+  CollectionReference<Map<String, dynamic>> _collection(String uid) {
+    return _db.collection('users').doc(uid).collection('moods');
+  }
 
   Future<void> saveMood(int moodIndex) async {
-    // For now this just stores in memory; later you can swap in Firestore.
-    final entry = MoodEntry(
-      id: _uuid.v4(),
-      timestamp: DateTime.now(),
-      moodIndex: moodIndex,
-    );
-    _entries.add(entry);
+    final user = AuthService.instance.currentUser;
+    if (user == null) return;
 
-    await Future.delayed(const Duration(milliseconds: 200));
+    await _collection(user.uid).add({
+      'timestamp': DateTime.now().toIso8601String(),
+      'moodIndex': moodIndex,
+    });
+  }
+
+  Future<List<MoodEntry>> fetchAll() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) return [];
+
+    final snapshot = await _collection(
+      user.uid,
+    ).orderBy('timestamp', descending: true).get();
+
+    return snapshot.docs
+        .map((doc) => MoodEntry.fromMap(doc.id, doc.data()))
+        .toList();
   }
 }
