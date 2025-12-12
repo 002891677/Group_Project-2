@@ -1,8 +1,7 @@
 class MoodEntry {
   final String id;
   final DateTime timestamp;
-  // 0–4 index for 😞 to 🤩
-  final int moodIndex;
+  final int moodIndex; // 0–4 for your emojis
 
   MoodEntry({
     required this.id,

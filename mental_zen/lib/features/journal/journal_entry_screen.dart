@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../services/journal_service.dart';
+
 class JournalEntryScreen extends StatefulWidget {
   const JournalEntryScreen({super.key});
 
@@ -16,10 +18,21 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     super.dispose();
   }
 
-  void _saveEntry() {
-    // TODO: Save journal to Firestore
+  Future<void> _saveEntry() async {
+    final text = _controller.text.trim();
+
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please write something first.')),
+      );
+      return;
+    }
+
+    await JournalService.instance.saveEntry(text);
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Journal entry saved (placeholder).')),
+      const SnackBar(content: Text('Journal entry saved (local store).')),
     );
     _controller.clear();
   }

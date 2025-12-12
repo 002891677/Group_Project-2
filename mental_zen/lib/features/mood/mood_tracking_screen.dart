@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../services/mood_service.dart';
+import 'package:mental_zen/services/mood_service.dart';
 
 class MoodTrackingScreen extends StatefulWidget {
   const MoodTrackingScreen({super.key});
@@ -70,5 +69,18 @@ class _MoodTrackingScreenState extends State<MoodTrackingScreen> {
         ),
       ),
     );
+  }
+}
+
+class MoodService {
+  static final MoodService _instance = MoodService._internal();
+
+  MoodService._internal();
+
+  static MoodService get instance => _instance;
+
+  Future<void> saveMood(int mood) async {
+    // TODO: Implement mood saving logic (e.g., to local database or API)
+    print('Mood saved: $mood');
   }
 }
