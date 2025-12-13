@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mental_zen/services/reminder_service.dart';
+import '../../services/reminder_service.dart';
 
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
@@ -10,26 +10,18 @@ class RemindersScreen extends StatefulWidget {
 
 class _RemindersScreenState extends State<RemindersScreen> {
   bool _enabled = false;
-  TimeOfDay _time = const TimeOfDay(hour: 20, minute: 0);
+  String _time = '09:00';
 
-  Future<void> _saveReminder() async {
-    final timeString =
-        '${_time.hour.toString().padLeft(2, '0')}:${_time.minute.toString().padLeft(2, '0')}';
+  Future<void> _save() async {
+    await ReminderService.instance.saveReminder(_enabled, _time);
 
-    await ReminderService.instance.saveReminder(_enabled, timeString);
-
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Reminder saved')));
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _time);
-    if (picked != null) {
-      setState(() => _time = picked);
-    }
   }
 
   @override
@@ -41,18 +33,29 @@ class _RemindersScreenState extends State<RemindersScreen> {
         child: Column(
           children: [
             SwitchListTile(
-              title: const Text('Enable Daily Reminder'),
+              title: const Text('Enable daily reminder'),
               value: _enabled,
-              onChanged: (val) => setState(() => _enabled = val),
+              onChanged: (v) {
+                setState(() {
+                  _enabled = v;
+                });
+              },
             ),
-            ListTile(
-              title: const Text('Reminder Time'),
-              subtitle: Text(_time.format(context)),
-              trailing: const Icon(Icons.access_time),
-              onTap: _pickTime,
+            const SizedBox(height: 16),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Reminder time (HH:mm)',
+              ),
+              controller: TextEditingController(text: _time),
+              onChanged: (v) {
+                _time = v;
+              },
             ),
-            const Spacer(),
-            ElevatedButton(onPressed: _saveReminder, child: const Text('Save')),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _save,
+              child: const Text('Save Reminder'),
+            ),
           ],
         ),
       ),

@@ -1,37 +1,26 @@
-class AppUser {
-  final String uid;
-  final String? email;
-
-  const AppUser({required this.uid, this.email});
-}
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
   AuthService._internal();
   static final AuthService instance = AuthService._internal();
 
-  bool _loggedIn = false;
-  AppUser? _user;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  bool get isLoggedIn => _loggedIn;
-
-  // ✅ This is what your services are expecting
-  AppUser? get currentUser => _user;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  User? get currentUser => _auth.currentUser;
 
   Future<void> signIn(String email, String password) async {
-    // TODO: Replace with FirebaseAuth signInWithEmailAndPassword
-    _loggedIn = true;
-    _user = AppUser(uid: 'demo-user', email: email);
+    await _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
   Future<void> signUp(String email, String password) async {
-    // TODO: Replace with FirebaseAuth createUserWithEmailAndPassword
-    _loggedIn = true;
-    _user = AppUser(uid: 'demo-user', email: email);
+    await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   Future<void> signOut() async {
-    // TODO: Replace with FirebaseAuth signOut
-    _loggedIn = false;
-    _user = null;
+    await _auth.signOut();
   }
 }

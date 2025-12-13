@@ -1,38 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mental_zen/services/auth_service.dart';
-import 'package:mental_zen/models/journal_entry.dart';
+import 'auth_service.dart';
 
 class JournalService {
   JournalService._internal();
   static final JournalService instance = JournalService._internal();
 
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final _db = FirebaseFirestore.instance;
 
-  CollectionReference<Map<String, dynamic>> _collection(String uid) {
-    return _db.collection('users').doc(uid).collection('journals');
-  }
+  CollectionReference<Map<String, dynamic>> _col(String uid) =>
+      _db.collection('users').doc(uid).collection('journalEntries');
 
   Future<void> saveEntry(String text, {int? moodIndex}) async {
     final user = AuthService.instance.currentUser;
-    if (user == null) return;
+    if (user == null) throw Exception('Not logged in');
 
-    await _collection(user.uid).add({
-      'timestamp': DateTime.now().toIso8601String(),
+    await _col(user.uid).add({
+      'timestamp': FieldValue.serverTimestamp(),
       'text': text,
       'moodIndex': moodIndex,
     });
   }
 
-  Future<List<JournalEntry>> fetchAll() async {
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamAll() {
     final user = AuthService.instance.currentUser;
-    if (user == null) return [];
+    if (user == null) {
+      return const Stream.empty();
+    }
 
-    final snapshot = await _collection(
-      user.uid,
-    ).orderBy('timestamp', descending: true).get();
-
-    return snapshot.docs
-        .map((doc) => JournalEntry.fromMap(doc.id, doc.data()))
-        .toList();
+    return _col(user.uid).orderBy('timestamp', descending: true).snapshots();
   }
 }

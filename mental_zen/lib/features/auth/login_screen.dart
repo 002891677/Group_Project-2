@@ -13,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  bool _loading = false;
 
   @override
   void dispose() {
@@ -22,13 +23,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    await AuthService.instance.signIn(
-      _emailCtrl.text.trim(),
-      _passCtrl.text.trim(),
-    );
-
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(context, AppRoutes.home);
+    setState(() => _loading = true);
+    try {
+      await AuthService.instance.signIn(
+        _emailCtrl.text.trim(),
+        _passCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -50,10 +60,11 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: const InputDecoration(labelText: 'Password'),
             ),
             const SizedBox(height: 18),
-            ElevatedButton(onPressed: _login, child: const Text('Login')),
-            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _loading ? null : _login,
+              child: Text(_loading ? 'Signing in...' : 'Login'),
+            ),
             TextButton(
-              // ✅ THIS fixes your /signup navigation problem
               onPressed: () => Navigator.pushNamed(context, AppRoutes.signup),
               child: const Text("Don't have an account? Sign up"),
             ),

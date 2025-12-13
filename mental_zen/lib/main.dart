@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'core/app_routes.dart';
 import 'services/auth_service.dart';
-import 'features/home/home_screen.dart';
 import 'features/auth/login_screen.dart';
+import 'features/home/home_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MentalZenApp());
 }
 
@@ -17,11 +23,7 @@ class MentalZenApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mental Zen',
       debugShowCheckedModeBanner: false,
-
-      // ✅ IMPORTANT: keeps routes working for /signup, /login, etc.
       onGenerateRoute: AppRoutes.generateRoute,
-
-      // Use AuthGate so app decides whether to show Login or Home
       home: const AuthGate(),
     );
   }
@@ -32,9 +34,21 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // For now: uses stub AuthService. Later replace with Firebase auth state.
-    return AuthService.instance.isLoggedIn
-        ? const HomeScreen()
-        : const LoginScreen();
+    return StreamBuilder(
+      stream: AuthService.instance.authStateChanges,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasData) {
+          return const HomeScreen();
+        }
+
+        return const LoginScreen();
+      },
+    );
   }
 }

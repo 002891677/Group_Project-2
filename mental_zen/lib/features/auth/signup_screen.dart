@@ -13,6 +13,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  bool _loading = false;
 
   @override
   void dispose() {
@@ -22,13 +23,22 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _signup() async {
-    await AuthService.instance.signUp(
-      _emailCtrl.text.trim(),
-      _passCtrl.text.trim(),
-    );
-
-    if (!mounted) return;
-    Navigator.pushReplacementNamed(context, AppRoutes.home);
+    setState(() => _loading = true);
+    try {
+      await AuthService.instance.signUp(
+        _emailCtrl.text.trim(),
+        _passCtrl.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Signup failed: $e')));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -51,12 +61,12 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             const SizedBox(height: 18),
             ElevatedButton(
-              onPressed: _signup,
-              child: const Text('Create Account'),
+              onPressed: _loading ? null : _signup,
+              child: Text(_loading ? 'Creating...' : 'Create Account'),
             ),
-            const SizedBox(height: 10),
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, AppRoutes.login),
               child: const Text("Already have an account? Login"),
             ),
           ],

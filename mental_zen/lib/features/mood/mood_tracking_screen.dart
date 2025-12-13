@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mental_zen/services/mood_service.dart';
+import '../../services/mood_service.dart';
 
 class MoodTrackingScreen extends StatefulWidget {
   const MoodTrackingScreen({super.key});
@@ -9,58 +9,42 @@ class MoodTrackingScreen extends StatefulWidget {
 }
 
 class _MoodTrackingScreenState extends State<MoodTrackingScreen> {
-  int? _selectedMood;
+  int _selected = 3;
+
+  Future<void> _saveMood() async {
+    await MoodService.instance.saveMood(_selected);
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Mood saved')));
+  }
 
   @override
   Widget build(BuildContext context) {
-    final moods = ['😞', '😐', '🙂', '😊', '🤩'];
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Daily Mood')),
+      appBar: AppBar(title: const Text('Mood Tracking')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             const Text('How are you feeling today?'),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(moods.length, (index) {
-                final isSelected = _selectedMood == index;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedMood = index),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.transparent,
-                      ),
-                    ),
-                    child: Text(
-                      moods[index],
-                      style: const TextStyle(fontSize: 32),
-                    ),
-                  ),
-                );
-              }),
+            Slider(
+              min: 1,
+              max: 5,
+              divisions: 4,
+              value: _selected.toDouble(),
+              label: _selected.toString(),
+              onChanged: (v) {
+                setState(() {
+                  _selected = v.round();
+                });
+              },
             ),
-            const Spacer(),
-            ElevatedButton(
-              onPressed: _selectedMood == null
-                  ? null
-                  : () async {
-                      await MoodService.instance.saveMood(_selectedMood!);
-                      if (!context.mounted)
-                        return; // fixes build_context warning
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Mood saved!')),
-                      );
-                    },
-              child: const Text('Save mood'),
-            ),
+            ElevatedButton(onPressed: _saveMood, child: const Text('Save')),
           ],
         ),
       ),

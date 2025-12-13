@@ -11,7 +11,6 @@ import '../features/mindfulness/mindfulness_screen.dart';
 import '../features/reminders/reminders_screen.dart';
 
 class AppRoutes {
-  // ✅ Route names (use these everywhere)
   static const String login = '/login';
   static const String signup = '/signup';
   static const String home = '/home';
@@ -26,31 +25,22 @@ class AppRoutes {
     switch (settings.name) {
       case login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
-
       case signup:
         return MaterialPageRoute(builder: (_) => const SignupScreen());
-
       case home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
-
       case moodTracking:
         return MaterialPageRoute(builder: (_) => const MoodTrackingScreen());
-
       case journalEntry:
         return MaterialPageRoute(builder: (_) => const JournalEntryScreen());
-
       case journalHistory:
         return MaterialPageRoute(builder: (_) => const JournalHistoryScreen());
-
       case insights:
         return MaterialPageRoute(builder: (_) => const InsightsScreen());
-
       case mindfulness:
         return MaterialPageRoute(builder: (_) => const MindfulnessScreen());
-
       case reminders:
         return MaterialPageRoute(builder: (_) => const RemindersScreen());
-
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

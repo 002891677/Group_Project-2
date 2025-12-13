@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:mental_zen/services/journal_service.dart';
-import 'package:mental_zen/models/journal_entry.dart';
+
+import '../../services/journal_service.dart';
 
 class JournalHistoryScreen extends StatelessWidget {
   const JournalHistoryScreen({super.key});
@@ -9,30 +10,27 @@ class JournalHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Journal History')),
-      body: FutureBuilder<List<JournalEntry>>(
-        future: JournalService.instance.fetchAll(),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: JournalService.instance.streamAll(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No journal entries yet.'));
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No entries yet.'));
           }
 
-          final entries = snapshot.data!;
+          final docs = snapshot.data!.docs;
 
-          return ListView.builder(
+          return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: entries.length,
+            itemCount: docs.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
-              final entry = entries[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  title: Text(entry.text),
-                  subtitle: Text(entry.timestamp.toLocal().toString()),
-                ),
+              final data = docs[index].data();
+              final text = (data['text'] ?? '').toString();
+              return ListTile(
+                title: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis),
               );
             },
           );

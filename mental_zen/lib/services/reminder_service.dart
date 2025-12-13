@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mental_zen/services/auth_service.dart';
+import 'auth_service.dart';
 
 class ReminderService {
   ReminderService._internal();
@@ -7,15 +7,33 @@ class ReminderService {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Future<void> saveReminder(bool enabled, String time) async {
-    final user = AuthService.instance.currentUser;
-    if (user == null) return;
-
-    await _db
+  DocumentReference<Map<String, dynamic>> _doc(String uid) {
+    return _db
         .collection('users')
-        .doc(user.uid)
+        .doc(uid)
         .collection('settings')
-        .doc('reminder')
-        .set({'enabled': enabled, 'time': time});
+        .doc('reminder');
+  }
+
+  // ✅ This method matches what your screen calls
+  Future<void> saveReminder(bool enabled, String timeHHmm) async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      throw Exception('User not logged in');
+    }
+
+    await _doc(user.uid).set({
+      'enabled': enabled,
+      'time': timeHHmm,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> streamReminder() {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      return const Stream.empty();
+    }
+    return _doc(user.uid).snapshots();
   }
 }
