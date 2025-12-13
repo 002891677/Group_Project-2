@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../core/app_routes.dart';
-import '../../core/widgets/primary_button.dart';
+import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,62 +11,53 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
 
   @override
   void dispose() {
     _emailCtrl.dispose();
-    _passwordCtrl.dispose();
+    _passCtrl.dispose();
     super.dispose();
   }
 
-  void _onLogin() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Replace with Firebase login
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
-    }
+  Future<void> _login() async {
+    await AuthService.instance.signIn(
+      _emailCtrl.text.trim(),
+      _passCtrl.text.trim(),
+    );
+
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Log in')),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _emailCtrl,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? 'Enter email' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordCtrl,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  validator: (value) => value == null || value.length < 6
-                      ? 'Min 6 characters'
-                      : null,
-                ),
-                const SizedBox(height: 24),
-                PrimaryButton(label: 'Log in', onPressed: _onLogin),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, AppRoutes.signup);
-                  },
-                  child: const Text('Create a new account'),
-                ),
-              ],
+      appBar: AppBar(title: const Text('Login')),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            TextField(
+              controller: _emailCtrl,
+              decoration: const InputDecoration(labelText: 'Email'),
             ),
-          ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _passCtrl,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password'),
+            ),
+            const SizedBox(height: 18),
+            ElevatedButton(onPressed: _login, child: const Text('Login')),
+            const SizedBox(height: 10),
+            TextButton(
+              // ✅ THIS fixes your /signup navigation problem
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.signup),
+              child: const Text("Don't have an account? Sign up"),
+            ),
+          ],
         ),
       ),
     );

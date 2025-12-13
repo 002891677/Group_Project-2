@@ -1,8 +1,8 @@
 class JournalEntry {
   final String id;
   final DateTime timestamp;
-  final int? moodIndex; // optional
   final String text;
+  final int? moodIndex;
 
   JournalEntry({
     required this.id,
@@ -11,20 +11,12 @@ class JournalEntry {
     this.moodIndex,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'timestamp': timestamp.toIso8601String(),
-      'moodIndex': moodIndex,
-      'text': text,
-    };
-  }
-
-  factory JournalEntry.fromMap(String id, Map<String, dynamic> map) {
+  factory JournalEntry.fromMap(String id, Map<String, dynamic> data) {
     return JournalEntry(
       id: id,
-      timestamp: DateTime.parse(map['timestamp'] as String),
-      moodIndex: map['moodIndex'] as int?,
-      text: map['text'] as String? ?? '',
+      timestamp: DateTime.parse(data['timestamp']),
+      text: data['text'],
+      moodIndex: data['moodIndex'],
     );
   }
 }

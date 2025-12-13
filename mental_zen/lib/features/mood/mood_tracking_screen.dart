@@ -28,11 +28,8 @@ class _MoodTrackingScreenState extends State<MoodTrackingScreen> {
               children: List.generate(moods.length, (index) {
                 final isSelected = _selectedMood == index;
                 return GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedMood = index);
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                  onTap: () => setState(() => _selectedMood = index),
+                  child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
@@ -56,11 +53,10 @@ class _MoodTrackingScreenState extends State<MoodTrackingScreen> {
                   ? null
                   : () async {
                       await MoodService.instance.saveMood(_selectedMood!);
-                      if (!mounted) return;
+                      if (!context.mounted)
+                        return; // fixes build_context warning
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Mood saved (temporary local store).'),
-                        ),
+                        const SnackBar(content: Text('Mood saved!')),
                       );
                     },
               child: const Text('Save mood'),
@@ -69,18 +65,5 @@ class _MoodTrackingScreenState extends State<MoodTrackingScreen> {
         ),
       ),
     );
-  }
-}
-
-class MoodService {
-  static final MoodService _instance = MoodService._internal();
-
-  MoodService._internal();
-
-  static MoodService get instance => _instance;
-
-  Future<void> saveMood(int mood) async {
-    // TODO: Implement mood saving logic (e.g., to local database or API)
-    print('Mood saved: $mood');
   }
 }

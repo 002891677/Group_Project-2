@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "901782117520",
+    "project_id": "mental-zen-71351",
+    "storage_bucket": "mental-zen-71351.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901782117520:android:135e35aa8b6d5d09e54c15",
+        "android_client_info": {
+          "package_name": "com.example.menta_zen"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBt7YDXbEUSeKrs8iKOIatmgeC6BF0pPP8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
