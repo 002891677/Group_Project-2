@@ -1,25 +1,32 @@
-import 'package:uuid/uuid.dart';
-import '../models/journal_entry.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'auth_service.dart';
 
 class JournalService {
-  static final JournalService instance = JournalService._internal();
   JournalService._internal();
+  static final JournalService instance = JournalService._internal();
 
-  final _uuid = const Uuid();
-  final List<JournalEntry> _entries = [];
+  final _db = FirebaseFirestore.instance;
 
-  List<JournalEntry> get entries =>
-      List.unmodifiable(_entries..sort((a, b) => b.timestamp.compareTo(a.timestamp)));
+  CollectionReference<Map<String, dynamic>> _col(String uid) =>
+      _db.collection('users').doc(uid).collection('journalEntries');
 
   Future<void> saveEntry(String text, {int? moodIndex}) async {
-    // TODO(Sai): Replace with Firestore write
-    final entry = JournalEntry(
-      id: _uuid.v4(),
-      timestamp: DateTime.now(),
-      text: text,
-      moodIndex: moodIndex,
-    );
-    _entries.add(entry);
-    await Future.delayed(const Duration(milliseconds: 200));
+    final user = AuthService.instance.currentUser;
+    if (user == null) throw Exception('Not logged in');
+
+    await _col(user.uid).add({
+      'timestamp': FieldValue.serverTimestamp(),
+      'text': text,
+      'moodIndex': moodIndex,
+    });
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamAll() {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      return const Stream.empty();
+    }
+
+    return _col(user.uid).orderBy('timestamp', descending: true).snapshots();
   }
 }

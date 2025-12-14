@@ -1,27 +1,36 @@
-// lib/services/mood_service.dart
-import 'package:uuid/uuid.dart';
-
-import '../models/mood_entry.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'auth_service.dart';
 
 class MoodService {
-  // Singleton pattern: MoodService.instance
   MoodService._internal();
   static final MoodService instance = MoodService._internal();
 
-  final _uuid = const Uuid();
-  final List<MoodEntry> _entries = [];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  List<MoodEntry> get entries => List.unmodifiable(_entries);
+  CollectionReference<Map<String, dynamic>> _col(String uid) {
+    return _db.collection('users').doc(uid).collection('moodEntries');
+  }
 
   Future<void> saveMood(int moodIndex) async {
-    // For now this just stores in memory; later you can swap in Firestore.
-    final entry = MoodEntry(
-      id: _uuid.v4(),
-      timestamp: DateTime.now(),
-      moodIndex: moodIndex,
-    );
-    _entries.add(entry);
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      throw Exception('Not logged in');
+    }
 
-    await Future.delayed(const Duration(milliseconds: 200));
+    await _col(
+      user.uid,
+    ).add({'timestamp': FieldValue.serverTimestamp(), 'moodIndex': moodIndex});
+  }
+
+  /// Latest mood entries (descending). Used by Insights screen.
+  Stream<QuerySnapshot<Map<String, dynamic>>> streamRecent({int limit = 50}) {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      return const Stream.empty();
+    }
+
+    return _col(
+      user.uid,
+    ).orderBy('timestamp', descending: true).limit(limit).snapshots();
   }
 }
